@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="et">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatbot API - Test Interface</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+          sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      .header {
+        background: #667eea;
+        color: white;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .header h1 {
+        margin-bottom: 5px;
+      }
+
+      .header p {
+        opacity: 0.9;
+        font-size: 14px;
+      }
+
+      .chat-box {
+        height: 400px;
+        overflow-y: auto;
+        padding: 20px;
+        background: #f7f7f7;
+      }
+
+      .message {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .message.user {
+        justify-content: flex-end;
+      }
+
+      .message-content {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        word-wrap: break-word;
+      }
+
+      .message.user .message-content {
+        background: #667eea;
+        color: white;
+      }
+
+      .message.bot .message-content {
+        background: white;
+        border: 1px solid #e0e0e0;
+      }
+
+      .message-type {
+        font-size: 10px;
+        margin-top: 5px;
+        opacity: 0.7;
+      }
+
+      .input-area {
+        padding: 20px;
+        background: white;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 10px;
+      }
+
+      input[type="text"] {
+        flex: 1;
+        padding: 12px;
+        border: 2px sold #e0e0e0;
+        border-radius: 25px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s;
+      }
+
+      input[type="text"]:focus {
+        border-color: #667eea;
+      }
+
+      button {
+        padding: 12px 30px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.3s;
+      }
+
+      button:hover {
+        background: #5568d3;
+      }
+
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      .status {
+        padding: 10px 20px;
+        background: #f0f0f0;
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .status.online {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status.offline {
+        background: #f8d7da;
+        color: #721c24;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🤖 Chatbot API</h1>
+        <p>Vestlusrobot juhi küsimustele vastamiseks</p>
+      </div>
+
+      <div class="status online" id="status">
+        ✅ Ühendatud serveriga (localhost:8080)
+      </div>
+
+      <div class="chat-box" id="chatBox">
+        <div class="message bot">
+          <div class="message-content">
+            Tere! Olen chatbot, kes aitab juhtide küsimustele vastata. <br />
+            Küsi minult midagi! Näiteks: "Tere!" või "Mis on Spring Boot?"
+          </div>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <div class="input-group">
+          <input
+            type="text"
+            id="questionInput"
+            placeholder="Kirjuta oma küsimus siia..."
+            onkeypress="if (event.key === 'Enter') sendMessage();"
+          />
+          <button onclick="sendMessage()" id="sendBtn">Saada</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const chatBox = document.getElementById("chatBox");
+      const questionInput = document.getElementById("questionInput");
+      const sendBtn = document.getElementById("sendBtn");
+      const statusDiv = document.getElementById("status");
+
+      // Check server status
+      checkServerStatus();
+
+      async function checkServerStatus() {
+        try {
+          const response = await fetch("http://localhost:8080/api/chat/health");
+          if (response.ok) {
+            statusDiv.className = "status online";
+            statusDiv.textContent = "✅ Ühendatud serveriga (localhost:8080)";
+          } else {
+            statusDiv.className = "status offline";
+            statusDiv.textContent = "❌ Server ei vasta";
+          }
+        } catch (error) {
+          statusDiv.className = "status offline";
+          statusDiv.textContent =
+            "❌ Ei saa serveriga ühendust (kas server töötab?)";
+        }
+      }
+
+      function addMessage(text, isUser, responseType = null) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${isUser ? "user" : "bot"}`;
+
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "message-content";
+        contentDiv.textContent = text;
+
+        if (!isUser && responseType) {
+          const typeSpan = document.createElement("div");
+          typeSpan.className = "message-type";
+          const typeText = {
+            RULE_BASED: "📋 Reegel",
+            RAG: "📚 Dokument",
+            LLM: "🤖 AI",
+          };
+          typeSpan.textContent = typeText[responseType] || responseType;
+          contentDiv.appendChild(typeSpan);
+        }
+
+        messageDiv.appendChild(contentDiv);
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+
+      async function sendMessage() {
+        const question = questionInput.value.trim();
+        if (!question) return;
+
+        // Add user message
+        addMessage(question, true);
+        questionInput.value = "";
+        sendBtn.disabled = true;
+        sendBtn.textContent = "Mõtleb...";
+
+        try {
+          const response = await fetch(
+            "http://localhost:8080/api/chat/message",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                userId: "web-user",
+                question: question,
+              }),
+            },
+          );
+
+          const data = await response.json();
+
+          if (data.answer) {
+            addMessage(data.answer, false, data.responseType);
+          } else if (data.errorMessage) {
+            addMessage("Viga: " + data.errorMessage, false);
+          } else {
+            addMessage("Vabandust, tekkis viga vastuse saamisel.", false);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          addMessage(
+            "Vabandust, ei saanud serveriga ühendust. Kontrolli, kas server töötab.",
+            false,
+          );
+        } finally {
+          sendBtn.disabled = false;
+          sendBtn.textContent = "Saada";
+        }
+      }
+    </script>
+  </body>
+</html>
