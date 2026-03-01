@@ -46,6 +46,16 @@ export OPENAI_API_KEY="your-api-key-here"
 ./mvnw spring-boot:run
 ```
 
+Koos Discord bot tokeniga:
+
+```bash
+export OPENAI_API_KEY="your-api-key-here"
+export DISCORD_BOT_TOKEN="your-discord-token-here"
+export DISCORD_BOT_ENABLED=true
+./mvnw spring-boot:run
+
+```
+
 Rakendus käivitub aadressil: `http://localhost:8080`
 
 ## Paigaldamine
@@ -173,7 +183,7 @@ src/main/java/com/team12/aichatbot/chatbot_api/
 - OpenAI LLM integratsioon
 - Reeglipõhised vastused
 - REST API
-- Baas andmebaas
+- PostgreSQL andmebaas
 
 ### 🔄 Iteratsioon 2
 
@@ -191,18 +201,4 @@ src/main/java/com/team12/aichatbot/chatbot_api/
 ### 📅 Iteratsioon 4
 
 - Liquibase migratsioonid
-- React frontend (valikuline)
-
-## Autorid
-
-Team 12
-
-- Eleri
-- Kätlin
-- Erik
-- Mari
-- Eva
-
-## Litsents
-
-Ülikooli projekt
+- React frontend
